@@ -66,7 +66,7 @@ def _gen_next_isainstrclass_from_weights(weights: list = None) -> ISAInstrClass:
 def _get_isainstrclass_filtered_weights(fuzzerstate):
     if DO_ASSERT:
         assert fuzzerstate.design_has_fpu or not fuzzerstate.design_has_fpud, "Cannot have double but not simple precision"
-    ret_dict = copy(fuzzerstate.isapickweights)
+    ret_dict = copy(fuzzerstate.isapickweights) # has updated probability distribution
     if not fuzzerstate.is_design_64bit:
         ret_dict[ISAInstrClass.ALU64]    = 0
         ret_dict[ISAInstrClass.MULDIV64] = 0

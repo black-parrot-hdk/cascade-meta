@@ -89,7 +89,7 @@ def profile_get_medeleg_mask(design_name: str):
     if "picorv32" in design_name:
         return 0 # This design does not support medeleg
     global PROFILED_MEDELEG_MASK
-    PROFILED_MEDELEG_MASK = __get_medeleg_mask(design_name)
+    PROFILED_MEDELEG_MASK = 0xb3ff if design_name == 'bp' else __get_medeleg_mask(design_name)
 
 # @return the mask of medeleg bits that are supported by the design
 def get_medeleg_mask(design_name: str):

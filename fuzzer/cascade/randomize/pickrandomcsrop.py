@@ -47,12 +47,12 @@ def gen_random_csr_op(fuzzerstate):
             if not fuzzerstate.design_has_supervisor_mode:
                 while target_csr in (MachineCSROpCandidates64.SCAUSE, MachineCSROpCandidates64.SSCRATCH):
                     target_csr = random.choice(list(MachineCSROpCandidates64))
-            while 'cva6' in fuzzerstate.design_name and not is_tolerate_cva6_mhpmcounter() and not is_tolerate_cva6_mhpmevent31() and target_csr in (MachineCSROpCandidates64.MHPMCOUNTER3, MachineCSROpCandidates64.MHPMEVENT31):
+            while (('cva6' in fuzzerstate.design_name) or ('bp' in fuzzerstate.design_name)) and not is_tolerate_cva6_mhpmcounter() and not is_tolerate_cva6_mhpmevent31() and target_csr in (MachineCSROpCandidates64.MHPMCOUNTER3, MachineCSROpCandidates64.MHPMEVENT31):
                 target_csr = random.choice(list(MachineCSROpCandidates64))
 
             if target_csr == MachineCSROpCandidates64.SCAUSE:
                 # According to the spec, the SCAUSE CSR must be able to hold bits 0 to 4. mret is not required to.
-                ret = CSRImmInstruction("csrrwi", fuzzerstate.intregpickstate.pick_int_outputreg(), random.randrange(32), CSR_IDS.SCAUSE)
+                ret = CSRImmInstruction("csrrwi", fuzzerstate.intregpickstate.pick_int_outputreg(), random.randrange(16), CSR_IDS.SCAUSE)
             elif target_csr == MachineCSROpCandidates64.MCAUSE:
                 ret = CSRImmInstruction("csrrwi", fuzzerstate.intregpickstate.pick_int_outputreg(), random.randrange(16), CSR_IDS.MCAUSE)
             elif target_csr == MachineCSROpCandidates64.SSCRATCH:
@@ -61,7 +61,7 @@ def gen_random_csr_op(fuzzerstate):
                     ret = CSRRegInstruction("csrrw", fuzzerstate.intregpickstate.pick_int_outputreg(), fuzzerstate.intregpickstate.pick_int_inputreg(), CSR_IDS.MSCRATCH)
             elif target_csr == MachineCSROpCandidates64.MINSTRET:
                 if fuzzerstate.is_minstret_inaccurate_because_ecall_ebreak or ("boom" in fuzzerstate.design_name and not is_tolerate_boom_minstret()):
-                    ret = CSRImmInstruction("csrrwi", 0, random.randrange(16), CSR_IDS.MINSTRET)
+                    ret = CSRImmInstruction("csrrwi", 0, random.randrange(12), CSR_IDS.MINSTRET)
                 else:
                     
                     ret = CSRRegInstruction("csrrw", fuzzerstate.intregpickstate.pick_int_outputreg(), fuzzerstate.intregpickstate.pick_int_inputreg(), CSR_IDS.MINSTRET)

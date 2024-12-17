@@ -42,75 +42,9 @@ export CASCADE_PYTHON_COMMON=$CASCADE_DESIGN_PROCESSING_ROOT/common/python_scrip
 
 export CASCADE_RISCV_BITWIDTH=64
 
-# Modelsim
-export MODELSIM_VERSION=questa-2022.3
-export PATH_TO_INSTANCELIMIT_PY=/data/flsolt/gits/instancelimit/instancelimit.py
-export MODELSIM_MAX_INSTANCES=100
-export MODELSIM_WORKROOT=.
-
 HOSTNAME=$(hostname)
-if [[ "${HOSTNAME}" == *"eda3"* ]]; # ETHZ EDA server
-then
-    # Example customization
-    export CASCADE_JOBS=14
-
-    ulimit -n 4096 # many FD's
-    export CASCADE_DATADIR=/data/"${USER}"/data-eda3
-    # export CASCADE_DATADIR=/home/flsolt/cascade-data
-elif [[ "${HOSTNAME}" == *"cn112"* ]]; # ETHZ cn112
-then
-    # Example customization
-    export CASCADE_JOBS=14
-
-    ulimit -n 4096 # many FD's
-    export CASCADE_DATADIR=/data/"${USER}"/data
-    export MODELSIM_VERSION=
-    export MODELSIM_WORKROOT=/data/"${USER}"/modelsimfuzz
-elif [[ "${HOSTNAME}" == *"cn106"* ]]; # ETHZ cn106
-then
-    # Example customization
-    export CASCADE_JOBS=250
-    export CASCADE_DOCKER_MNT_DIR=/scratch/"${USER}"/shareddir
-    export MODELSIM_MAX_INSTANCES=256
-    export CASCADE_RISCV_BITWIDTH=32
-
-    ulimit -n 10000 # many FD's
-    export CASCADE_DATADIR=/scratch/"${USER}"/data/python-tmp
-    export MODELSIM_VERSION=
-    export MODELSIM_WORKROOT=/scratch/"${USER}"/modelsimfuzz
-elif [[ "${HOSTNAME}" == *"cn107"* ]]; # ETHZ cn107
-then
-    # Example customization
-    export CASCADE_JOBS=250
-    export MODELSIM_MAX_INSTANCES=256
-
-    ulimit -n 4096 # many FD's
-    export CASCADE_DATADIR=/scratch/"${USER}"/data
-    export MODELSIM_VERSION=
-    export MODELSIM_WORKROOT=/scratch/"${USER}"/modelsimfuzz
-elif [ "$USER" = flsolt ] # ETHZ Flavien big server
-then
-    # Example customization
-    export CASCADE_JOBS=250
-    export MODELSIM_MAX_INSTANCES=256
-
-    ulimit -n 10000 # many FD's
-    export CASCADE_DATADIR=/scratch/"${USER}"/data
-    export MODELSIM_VERSION=
-    export MODELSIM_WORKROOT=/scratch/"${USER}"/modelsimfuzz
-elif [ "$USER" = user ] # ETHZ Flavien laptop
-then
-    export CASCADE_JOBS=10
-
-    ulimit -n 10000 # many FD's
-    export CASCADE_DATADIR=/home/"${USER}"/cascade-data
-elif [ -z ${IS_DOCKER+x} ]
-then
-    export CASCADE_JOBS=250
-
-    ulimit -n 10000 # many FD's
-    export CASCADE_DATADIR=/cascade-data
-fi
+ulimit -n 10000 # many FD's
+export CASCADE_DATADIR=$CASCADE_META_ROOT/cascade-data
 
 # Where should our python venv be?
 export CASCADE_PYTHON_VENV=$PREFIX_CASCADE/python-venv
@@ -157,12 +91,7 @@ export MODELSIM_LOCKFILE=$CASCADE_META_ROOT/tmp/modelsim_lock
 # RISC-V proxy kernel
 export CASCADE_PK64=$RISCV/riscv32-unknown-elf/bin/pk
 
-# Not really a cascade thing, just used to eval DifuzzRTL
-PATH=/data/flsolt/opt/elf2hex:$PATH
-
 export CASCADE_PATH_TO_FIGURES=$CASCADE_META_ROOT/figures
 
-export CASCADE_PATH_TO_DIFUZZRTL_ELFS=/cascade-difuzzrtl/docker/shareddir/savedockerdifuzzrtl/Fuzzer/outdir/illegal/elf/
-# export CASCADE_PATH_TO_DIFUZZRTL_ELFS=/scratch/flsolt/shareddir/Fuzzer/outdir1000/illegal/elf
-
-export CASCADE_PATH_TO_DIFUZZRTL_ELFS_FOR_MODELSIM=/scratch/flsolt/dockerrungenelf/cascade-mountdir
+export CASCADE_BP_SDK_DIR=$CASCADE_META_ROOT/../../../software/import/black-parrot-sdk
+export CASCADE_BP=$CASCADE_META_ROOT/../../import/black-parrot

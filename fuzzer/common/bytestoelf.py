@@ -18,7 +18,7 @@ def gen_elf(inbytes: bytes, start_addr: int, section_addr: int, destination_path
     if DO_ASSERT:
         assert destination_path
 
-    elf = ELF(e_machine=EM.EM_RISCV, e_data=ELFDATA.ELFDATA2LSB, e_entry=start_addr)
+    elf = ELF(e_machine=EM.EM_RISCV, e_data=ELFDATA.ELFDATA2LSB, e_entry=section_addr)
 
     # Create the section
     SH_FLAGS = 0x6 # Loadable and executable

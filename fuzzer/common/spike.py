@@ -138,6 +138,7 @@ def run_trace_regs_at_pc_locs(identifier_str: str, elfpath: str, rvflags: str, s
         f"--debug-cmd={path_to_debug_file}",
         f"--isa={rvflags}",
         f"--pc={startpc}",
+        #f"--log-commits",
         elfpath
     )
 

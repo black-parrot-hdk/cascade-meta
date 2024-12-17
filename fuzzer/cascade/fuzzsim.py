@@ -35,15 +35,18 @@ def runsim_verilator(design_name, simlen, elfpath, num_int_regs: int = MAX_NUM_P
     cascadedir       = designcfgs.get_design_cascade_path(design_name)
     builddir         = os.path.join(cascadedir,'build')
 
-    my_env = setup_sim_env(elfpath, '/dev/null', '/dev/null', simlen, cascadedir, coveragepath, False)
-
+    my_env = setup_sim_env(design_name, elfpath, '/dev/null', '/dev/null', simlen, cascadedir, coveragepath, False)
     simdir               = f"run_{'coverage' if coveragepath else 'rfuzz' if get_rfuzz_coverage_mask else 'vanilla'}_notrace_0.1"
     verilatordir         = 'default-verilator'
     verilator_executable = 'V%s' % design_cfg['toplevel']
-    sim_executable_path  = os.path.abspath(os.path.join(builddir, simdir, verilatordir, verilator_executable))
+    sim_executable_path  = os.path.abspath(os.path.join(cascadedir, 'verilator', 'obj_dir', 'Vbsg_nonsynth_zynq_testbench')) if design_name == 'bp' \
+                            else os.path.abspath(os.path.join(builddir, simdir, verilatordir, verilator_executable))
 
+    chained_args         = [sim_executable_path, elfpath.replace('.elf', '.nbf'), elfpath.replace('.elf', '.riscv'), '+bsg_trace'] if design_name == 'bp' \
+                            else [sim_executable_path]
     # Run Verilator
-    exec_out = subprocess.run([sim_executable_path], check=True, text=True, capture_output=True, env=my_env)
+    exec_out = subprocess.run(chained_args if design_name == 'bp' else sim_executable_path, check=True, text=True, env=my_env)
+    #print(exec_out)
     outlines = list(filter(lambda l: 'Writing ELF word to' not in l, exec_out.stdout.split('\n')))
 
     # Check stop success

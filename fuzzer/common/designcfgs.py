@@ -27,8 +27,12 @@ def get_design_cascade_path(design_name):
 # @return the design config of the relevant repo.
 @cache
 def get_design_cfg(design_name):
-    with open(os.path.join(get_design_cascade_path(design_name), "meta", "cfg.json"), "r") as f:
-        return json.load(f)
+    if design_name == 'bp':
+        with open(os.path.join(get_design_cascade_path(design_name), "cascade-cfg.json"), "r") as f:
+            return json.load(f)
+    else:
+        with open(os.path.join(get_design_cascade_path(design_name), "meta", "cfg.json"), "r") as f:
+            return json.load(f)
 
 # @param design_name: must be one of the keys of the design_repos.json dict.
 # @return the top soc name, for example ibex_tiny_soc.
@@ -164,6 +168,8 @@ def get_design_worklib_path(design_name, dotrace, fuzzcoreid: int = 0):
 def get_design_prettyname(design_name):
     if design_name == "ibex":
         return "Ibex"
+    elif design_name == "bp":
+        return "BlackParrot"
     elif design_name == "cva6":
         return "Ariane"
     elif design_name == "pulpissimo":

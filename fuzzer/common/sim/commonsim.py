@@ -8,7 +8,7 @@ from params.runparams import DO_ASSERT
 # Replace the environment with new values.
 # sram_taintfile: path relative to cascadedir
 # bootrom_elf: path relative to cascadedir
-def setup_sim_env(sram_elf, bootrom_elf, tracefile, simtime, cascadedir, coveragefile, verbose: bool = True):
+def setup_sim_env(design_name, sram_elf, bootrom_elf, tracefile, simtime, cascadedir, coveragefile, verbose: bool = True):
     if DO_ASSERT:
         assert isinstance(sram_elf, str)
         assert isinstance(bootrom_elf, str) or bootrom_elf is None
@@ -50,6 +50,9 @@ def setup_sim_env(sram_elf, bootrom_elf, tracefile, simtime, cascadedir, coverag
         my_env["SIMROMELF"] = bootrom_elf
     else:
         my_env["SIMROMELF"] = sram_elf
+
+    if design_name == 'bp':
+        my_env['LD_LIBRARY_PATH'] = os.path.join(cascadedir, '../../software/import/black-parrot-sdk/install/lib')'
 
     if verbose:
         print('setting SIMSRAMELF to {}'.format(my_env["SIMSRAMELF"]))

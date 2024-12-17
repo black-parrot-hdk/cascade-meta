@@ -20,7 +20,9 @@ import random
 
 class FuzzerState:
     # @param randseed for identification purposes only.
-    def __init__(self, design_base_addr: int, design_name: str, memsize: int, randseed: int, nmax_bbs: int, authorize_privileges: bool, nmax_instructions: int = None, nodependencybias: bool = False):
+    def __init__(self, design_base_addr: int, design_name: str, memsize: int, randseed: int, nmax_bbs: int, authorize_privileges: bool, nmax_instructions: int = None, nodependencybias: bool = False, isa_class_p_distr = None):
+        self.isa_class_p_distr = isa_class_p_distr
+
         # For identification
         self.randseed = randseed
         self.nmax_bbs = nmax_bbs
@@ -106,35 +108,67 @@ class FuzzerState:
 
     def gen_pick_weights(self):
         self.fpuweight = random.random() # Can decrease the overall FPU load to favor other types of instructions
-        self.isapickweights = {
-            ISAInstrClass.REGFSM:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.REGFSM],
-            ISAInstrClass.FPUFSM:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPUFSM],
-            ISAInstrClass.ALU:         (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.ALU],
-            ISAInstrClass.ALU64:       (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.ALU64],
-            ISAInstrClass.MULDIV:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MULDIV],
-            ISAInstrClass.MULDIV64:    (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MULDIV64],
-            ISAInstrClass.AMO:         (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.AMO],
-            ISAInstrClass.AMO64:       (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.AMO64],
-            ISAInstrClass.JAL :        (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.JAL],
-            ISAInstrClass.JALR:        (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.JALR],
-            ISAInstrClass.BRANCH:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.BRANCH],
-            ISAInstrClass.MEM:         (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEM],
-            ISAInstrClass.MEM64:       (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEM64],
-            ISAInstrClass.MEMFPU:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEMFPU]  * self.fpuweight,
-            ISAInstrClass.FPU:         (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPU]     * self.fpuweight,
-            ISAInstrClass.FPU64:       (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPU64]   * self.fpuweight,
-            ISAInstrClass.MEMFPUD:     (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEMFPUD] * self.fpuweight,
-            ISAInstrClass.FPUD:        (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPUD]    * self.fpuweight,
-            ISAInstrClass.FPUD64:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPUD64]  * self.fpuweight,
-            ISAInstrClass.MEDELEG:     (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEDELEG],
-            ISAInstrClass.TVECFSM:     (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.TVECFSM],
-            ISAInstrClass.PPFSM:       (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.PPFSM],
-            ISAInstrClass.EPCFSM:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.EPCFSM],
-            ISAInstrClass.EXCEPTION:   (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.EXCEPTION],
-            ISAInstrClass.RANDOM_CSR:  (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.RANDOM_CSR],
-            ISAInstrClass.DESCEND_PRV: (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.DESCEND_PRV],
-            ISAInstrClass.SPECIAL:     (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.SPECIAL],
-        }
+        if self.isa_class_p_distr is None:
+            self.isapickweights = {
+                # will be normalized again later
+                ISAInstrClass.REGFSM:      (self.isa_class_p_distr[0] ) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.REGFSM],
+                ISAInstrClass.FPUFSM:      (self.isa_class_p_distr[1] ) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPUFSM],
+                ISAInstrClass.ALU:         (self.isa_class_p_distr[2] ) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.ALU],
+                ISAInstrClass.ALU64:       (self.isa_class_p_distr[3] ) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.ALU64],
+                ISAInstrClass.MULDIV:      (self.isa_class_p_distr[4] ) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MULDIV],
+                ISAInstrClass.MULDIV64:    (self.isa_class_p_distr[5] ) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MULDIV64],
+                ISAInstrClass.AMO:         (self.isa_class_p_distr[6] ) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.AMO],
+                ISAInstrClass.AMO64:       (self.isa_class_p_distr[7] ) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.AMO64],
+                ISAInstrClass.JAL :        (self.isa_class_p_distr[8] ) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.JAL],
+                ISAInstrClass.JALR:        (self.isa_class_p_distr[9] ) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.JALR],
+                ISAInstrClass.BRANCH:      (self.isa_class_p_distr[10]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.BRANCH],
+                ISAInstrClass.MEM:         (self.isa_class_p_distr[11]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEM],
+                ISAInstrClass.MEM64:       (self.isa_class_p_distr[12]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEM64],
+                ISAInstrClass.MEMFPU:      (self.isa_class_p_distr[13]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEMFPU]  * self.fpuweight,
+                ISAInstrClass.FPU:         (self.isa_class_p_distr[14]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPU]     * self.fpuweight,
+                ISAInstrClass.FPU64:       (self.isa_class_p_distr[15]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPU64]   * self.fpuweight,
+                ISAInstrClass.MEMFPUD:     (self.isa_class_p_distr[16]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEMFPUD] * self.fpuweight,
+                ISAInstrClass.FPUD:        (self.isa_class_p_distr[17]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPUD]    * self.fpuweight,
+                ISAInstrClass.FPUD64:      (self.isa_class_p_distr[18]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPUD64]  * self.fpuweight,
+                ISAInstrClass.MEDELEG:     (self.isa_class_p_distr[19]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEDELEG],
+                ISAInstrClass.TVECFSM:     (self.isa_class_p_distr[20]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.TVECFSM],
+                ISAInstrClass.PPFSM:       (self.isa_class_p_distr[21]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.PPFSM],
+                ISAInstrClass.EPCFSM:      (self.isa_class_p_distr[22]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.EPCFSM],
+                ISAInstrClass.EXCEPTION:   (self.isa_class_p_distr[23]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.EXCEPTION],
+                ISAInstrClass.RANDOM_CSR:  (self.isa_class_p_distr[24]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.RANDOM_CSR],
+                ISAInstrClass.DESCEND_PRV: (self.isa_class_p_distr[25]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.DESCEND_PRV],
+                ISAInstrClass.SPECIAL:     (self.isa_class_p_distr[26]) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.SPECIAL],
+            }
+        else:
+            self.isapickweights = {
+                ISAInstrClass.REGFSM:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.REGFSM],
+                ISAInstrClass.FPUFSM:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPUFSM],
+                ISAInstrClass.ALU:         (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.ALU],
+                ISAInstrClass.ALU64:       (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.ALU64],
+                ISAInstrClass.MULDIV:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MULDIV],
+                ISAInstrClass.MULDIV64:    (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MULDIV64],
+                ISAInstrClass.AMO:         (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.AMO],
+                ISAInstrClass.AMO64:       (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.AMO64],
+                ISAInstrClass.JAL :        (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.JAL],
+                ISAInstrClass.JALR:        (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.JALR],
+                ISAInstrClass.BRANCH:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.BRANCH],
+                ISAInstrClass.MEM:         (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEM],
+                ISAInstrClass.MEM64:       (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEM64],
+                ISAInstrClass.MEMFPU:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEMFPU]  * self.fpuweight,
+                ISAInstrClass.FPU:         (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPU]     * self.fpuweight,
+                ISAInstrClass.FPU64:       (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPU64]   * self.fpuweight,
+                ISAInstrClass.MEMFPUD:     (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEMFPUD] * self.fpuweight,
+                ISAInstrClass.FPUD:        (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPUD]    * self.fpuweight,
+                ISAInstrClass.FPUD64:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.FPUD64]  * self.fpuweight,
+                ISAInstrClass.MEDELEG:     (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.MEDELEG],
+                ISAInstrClass.TVECFSM:     (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.TVECFSM],
+                ISAInstrClass.PPFSM:       (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.PPFSM],
+                ISAInstrClass.EPCFSM:      (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.EPCFSM],
+                ISAInstrClass.EXCEPTION:   (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.EXCEPTION],
+                ISAInstrClass.RANDOM_CSR:  (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.RANDOM_CSR],
+                ISAInstrClass.DESCEND_PRV: (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.DESCEND_PRV],
+                ISAInstrClass.SPECIAL:     (random.random() + 0.05) * ISAINSTRCLASS_INITIAL_BOOSTERS[ISAInstrClass.SPECIAL],
+            }
         self.exceptionoppickweights = {
             ExceptionCauseVal.ID_INSTR_ADDR_MISALIGNED:        (random.random() + 0.05) * EXCEPTION_OP_TYPE_INITIAL_BOOSTERS[ExceptionCauseVal.ID_INSTR_ADDR_MISALIGNED],
             ExceptionCauseVal.ID_INSTR_ACCESS_FAULT:           (random.random() + 0.05) * EXCEPTION_OP_TYPE_INITIAL_BOOSTERS[ExceptionCauseVal.ID_INSTR_ACCESS_FAULT],

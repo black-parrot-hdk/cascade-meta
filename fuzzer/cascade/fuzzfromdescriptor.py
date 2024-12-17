@@ -16,6 +16,7 @@ from cascade.spikeresolution import spike_resolution
 import os
 import random
 import time
+from cascade.cfinstructionclasses import is_placeholder, JALInstruction, JALRInstruction, BranchInstruction, ExceptionInstruction, TvecWriterInstruction, EPCWriterInstruction, GenericCSRWriterInstruction, MisalignedMemInstruction, PrivilegeDescentInstruction, EcallEbreakInstruction, SimpleExceptionEncapsulator, CSRRegInstruction
 
 FUZZ_USE_MODELSIM = False
 
@@ -37,11 +38,32 @@ def gen_fuzzerstate_elf_expectedvals(memsize: int, design_name: str, randseed: i
     random.seed(randseed)
     fuzzerstate = FuzzerState(get_design_boot_addr(design_name), design_name, memsize, randseed, nmax_bbs, authorize_privileges, max_num_instructions, no_dependency_bias)
     gen_basicblocks(fuzzerstate)
+    file = open(os.path.join(dict(os.environ)['CASCADE_DATADIR'], './gen_basicblocks.log'), 'w')
+    with file as f:
+        for i in range(len(fuzzerstate.instr_objs_seq)):
+            f.write('\n')
+            f.write(str(i))
+            f.write('\n')
+            for j in range(len(fuzzerstate.instr_objs_seq[i])):
+                f.write(str(fuzzerstate.instr_objs_seq[i][j].instr_str if len(fuzzerstate.instr_objs_seq[i])>1 and not is_placeholder(fuzzerstate.instr_objs_seq[i][j] ) else 0))
+                f.write('\n')
+
     time_seconds_spent_in_gen_bbs = time.time() - start
 
     # spike resolution
     start = time.time()
     expected_regvals = spike_resolution(fuzzerstate, check_pc_spike_again)
+    file = open(os.path.join(dict(os.environ)['CASCADE_DATADIR'], './spike_resolution.log'), 'w')
+    with file as f:
+        for i in range(len(fuzzerstate.instr_objs_seq)):
+            f.write('\n')
+            f.write(str(i))
+            f.write('\n')
+            for j in range(len(fuzzerstate.instr_objs_seq[i])):
+                f.write(str(fuzzerstate.instr_objs_seq[i][j].instr_str if len(fuzzerstate.instr_objs_seq[i])>1 and not is_placeholder(fuzzerstate.instr_objs_seq[i][j] ) else 0))
+                # if isinstance(fuzzerstate.instr_objs_seq[i][j], BranchInstruction):
+                #     print(i, j, fuzzerstate.instr_objs_seq[i][j].instr_str, fuzzerstate.instr_objs_seq[i][j].plan_taken)
+                f.write('\n')
     time_seconds_spent_in_spike_resol = time.time() - start
 
     start = time.time()
@@ -56,7 +78,6 @@ def gen_fuzzerstate_elf_expectedvals(memsize: int, design_name: str, randseed: i
 
 def run_rtl(memsize: int, design_name: str, randseed: int, nmax_bbs: int, authorize_privileges: bool, check_pc_spike_again: bool, nmax_instructions: int = None, nodependencybias: bool = False, simulator=SimulatorEnum.VERILATOR):
     fuzzerstate, rtl_elfpath, finalregvals_spikeresol, time_seconds_spent_in_gen_bbs, time_seconds_spent_in_spike_resol, time_seconds_spent_in_gen_elf = gen_fuzzerstate_elf_expectedvals(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, nmax_instructions, nodependencybias)
-
     start = time.time()
     is_success, rtl_msg = runtest_simulator(fuzzerstate, rtl_elfpath, finalregvals_spikeresol, simulator=simulator)
     time_seconds_spent_in_rtl_sim = time.time() - start
@@ -79,7 +100,7 @@ def run_rtl(memsize: int, design_name: str, randseed: int, nmax_bbs: int, author
 # This function runs a single test run from a test descriptor (memsize, design_name, randseed, nmax_bbs) and returns the gathered times (used for the performance evaluation plot).
 # Loggers are not yet very tested facilities.
 @timeout(seconds=60*60*2)
-def fuzz_single_from_descriptor(memsize: int, design_name: str, randseed: int, nmax_bbs: int, authorize_privileges: bool, loggers: list = None, check_pc_spike_again: bool = False, start_time: float = None):
+def fuzz_single_from_descriptor(memsize: int, design_name: str, randseed: int, nmax_bbs: int, authorize_privileges: bool, loggers: list = None, check_pc_spike_again: bool = False, start_time: float = None, isa_class_p_distr = None):
     try:
         gathered_times = run_rtl(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again)
         if loggers is not None:

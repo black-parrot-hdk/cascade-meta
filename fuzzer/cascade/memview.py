@@ -125,7 +125,7 @@ class MemoryView:
             assert right_bound <= self.memsize
             assert left_bound < right_bound
             # The bounds must be sufficiently spaced. In our use case, this is not at all a problem.
-            assert ((left_bound+(1 << alignment_bits)-1) >> alignment_bits) < ((right_bound-min_space) >> alignment_bits)
+            assert (((left_bound+(1 << alignment_bits)-1) >> alignment_bits) < ((right_bound-min_space) >> alignment_bits))
 
         for _ in range(max_attempts):
             picked_addr = random.randrange((left_bound+(1 << alignment_bits)-1) >> alignment_bits, ((right_bound-min_space) >> alignment_bits)) << alignment_bits

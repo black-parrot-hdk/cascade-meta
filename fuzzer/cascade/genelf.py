@@ -10,6 +10,9 @@ from cascade.finalblock import finalblock_spike_resolution
 
 from collections import defaultdict
 import os
+import subprocess
+import sys
+import importlib.util
 
 # From a fuzzerstate, generates an ELF, may it be for spike resolution or for RTL simulation
 # Also integrates the final block.
@@ -82,4 +85,34 @@ def gen_elf_from_bbs(fuzzerstate, is_spike_resolution, prefixname: str, test_ide
 
     # Generate the ELF object
     gen_elf(curr_bytes, start_addr=fuzzerstate.bb_start_addr_seq[0], section_addr=start_addr, destination_path=elfpath, is_64bit=fuzzerstate.is_design_64bit)
+    # Convert to NBF for BP
+    if fuzzerstate.design_name == 'bp':
+        mem_file = elfpath[:-4] + '.mem'
+        nbf_file = elfpath[:-4] + '.nbf'
+        riscv_file = elfpath[:-4] + '.riscv'
+        dump_file = elfpath[:-4] + '.dump'
+        f = open(nbf_file, 'w')
+        env = dict(os.environ)
+        bp_sdk_dir = env['CASCADE_BP_SDK_DIR'] 
+        objcopy = os.path.join(bp_sdk_dir, 'install/bin/riscv64-unknown-elf-dramfs-objcopy')
+        bp_dir = env['CASCADE_BP']
+        spec = importlib.util.spec_from_file_location("nbf_module", os.path.join(bp_dir, 'bp_common/software/py/nbf.py'))
+        nbf_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(nbf_module)
+
+        if subprocess.run([objcopy, '-O', 'verilog', elfpath, mem_file]):
+            converter = nbf_module.NBF(1, '', mem_file, 16, '', True, True, 64, '0x80000000', False, False)
+            orig_stdout = sys.stdout
+            sys.stdout = f
+            converter.dump()
+            sys.stdout = orig_stdout
+        else:
+            assert False, 'Did not generate NBF'
+        f.close()
+
+        gen_elf(curr_bytes, start_addr=fuzzerstate.bb_start_addr_seq[0], section_addr=0x8000_0000, destination_path=riscv_file, is_64bit=fuzzerstate.is_design_64bit)
+        objdump = os.path.join(bp_sdk_dir, 'install/bin/riscv64-unknown-elf-dramfs-objdump')
+        with open(dump_file, "w") as file:
+            subprocess.run([objdump, '-D', riscv_file], stdout=file)
+
     return elfpath

@@ -10,20 +10,26 @@ from common.spike import calibrate_spikespeed
 from cascade.toleratebugs import tolerate_bug_for_eval_reduction
 
 import os
+import sys
+import json
 
 if __name__ == '__main__':
     if "CASCADE_ENV_SOURCED" not in os.environ:
         raise Exception("The Cascade environment must be sourced prior to running the Python recipes.")
 
-    design_name = 'boom'
-    descriptor = (881540, design_name, 5000017, 51, True)
+    design_name = 'bp'
+    descriptor = (881540, design_name, 341, 80, True)
+    # 34111 shows a weird PC unaligned bug
+
+    if len(sys.argv) > 1:
+        json_string = sys.argv[1]
+        isa_class_p_distr = json.loads(json_string)
+        print("Received list:", isa_class_p_distr)
 
     # tolerate_bug_for_eval_reduction(design_name)
-
     calibrate_spikespeed()
     profile_get_medeleg_mask(design_name)
-
-    fuzz_single_from_descriptor(*descriptor, check_pc_spike_again=True)
+    fuzz_single_from_descriptor(*descriptor, check_pc_spike_again=True, isa_class_p_distr=isa_class_p_distr)
 
 else:
     raise Exception("This module must be at the toplevel.")

@@ -56,7 +56,7 @@ def gen_initial_basic_block(fuzzerstate, offset_addr: int, csr_init_rounding_mod
             curr_addr += 4
 
     # We authorize all accesses through the PMP registers
-    if not ("vexriscv" in fuzzerstate.design_name and is_forbid_vexriscv_csrs()):
+    if not ("vexriscv" or "bp" in fuzzerstate.design_name and is_forbid_vexriscv_csrs()):
         if fuzzerstate.design_has_pmp:
             # pmpcfg0
             fuzzerstate.instr_objs_seq[-1].append(RegImmInstruction("addi", 1, 0, 31, fuzzerstate.is_design_64bit))
@@ -90,8 +90,8 @@ def gen_initial_basic_block(fuzzerstate, offset_addr: int, csr_init_rounding_mod
             fuzzerstate.instr_objs_seq[-1].append(CSRRegInstruction("csrrw", 0, 0, CSR_IDS.SSCRATCH))
             curr_addr += 12
 
-        if not fuzzerstate.is_design_64bit and fuzzerstate.design_name != 'picorv32':
-            fuzzerstate.instr_objs_seq[-1].append(CSRRegInstruction("csrrw", 0, 0, CSR_IDS.MCYCLEH))
+        if not fuzzerstate.is_design_64bit and (fuzzerstate.design_name != 'picorv32'):
+            fuzzerstate.instr_objs_seq[-1].append(CSRRegInstruction("csrrw", 0, 0, CSR_IDS.MCYCLE))
             fuzzerstate.instr_objs_seq[-1].append(CSRRegInstruction("csrrw", 0, 0, CSR_IDS.MINSTRET))
             curr_addr += 8
 
