@@ -29,14 +29,14 @@ def gen_new_test_instance(design_name: str, randseed: int, can_authorize_privile
 
 # The main function for a single fuzzer run. It creates a new fuzzer state, populates it with basic blocks, and then runs the spike resolution. It does not run the RTL simulation.
 # @return (fuzzerstate, rtl_elfpath, expected_regvals: list) where expected_regval is a list of num_pickable_regs-1 expected reg values (we ignore x0)
-def gen_fuzzerstate_elf_expectedvals(memsize: int, design_name: str, randseed: int, nmax_bbs: int, authorize_privileges: bool, check_pc_spike_again: bool, max_num_instructions: int = None, no_dependency_bias: bool = False):
+def gen_fuzzerstate_elf_expectedvals(memsize: int, design_name: str, randseed: int, nmax_bbs: int, authorize_privileges: bool, check_pc_spike_again: bool, max_num_instructions: int = None, no_dependency_bias: bool = False, isa_class_p_distr = None):
     from cascade.fuzzerstate import FuzzerState
     if DO_ASSERT:
         assert nmax_bbs is None or nmax_bbs > 0
 
     start = time.time()
     random.seed(randseed)
-    fuzzerstate = FuzzerState(get_design_boot_addr(design_name), design_name, memsize, randseed, nmax_bbs, authorize_privileges, max_num_instructions, no_dependency_bias)
+    fuzzerstate = FuzzerState(get_design_boot_addr(design_name), design_name, memsize, randseed, nmax_bbs, authorize_privileges, max_num_instructions, no_dependency_bias, isa_class_p_distr)
     gen_basicblocks(fuzzerstate)
     file = open(os.path.join(dict(os.environ)['CASCADE_DATADIR'], './gen_basicblocks.log'), 'w')
     with file as f:
@@ -76,8 +76,8 @@ def gen_fuzzerstate_elf_expectedvals(memsize: int, design_name: str, randseed: i
 # Exposed function
 ###
 
-def run_rtl(memsize: int, design_name: str, randseed: int, nmax_bbs: int, authorize_privileges: bool, check_pc_spike_again: bool, nmax_instructions: int = None, nodependencybias: bool = False, simulator=SimulatorEnum.VERILATOR):
-    fuzzerstate, rtl_elfpath, finalregvals_spikeresol, time_seconds_spent_in_gen_bbs, time_seconds_spent_in_spike_resol, time_seconds_spent_in_gen_elf = gen_fuzzerstate_elf_expectedvals(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, nmax_instructions, nodependencybias)
+def run_rtl(memsize: int, design_name: str, randseed: int, nmax_bbs: int, authorize_privileges: bool, check_pc_spike_again: bool, nmax_instructions: int = None, nodependencybias: bool = False, simulator=SimulatorEnum.VERILATOR, isa_class_p_distr = None):
+    fuzzerstate, rtl_elfpath, finalregvals_spikeresol, time_seconds_spent_in_gen_bbs, time_seconds_spent_in_spike_resol, time_seconds_spent_in_gen_elf = gen_fuzzerstate_elf_expectedvals(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, nmax_instructions, nodependencybias, isa_class_p_distr)
     start = time.time()
     is_success, rtl_msg = runtest_simulator(fuzzerstate, rtl_elfpath, finalregvals_spikeresol, simulator=simulator)
     time_seconds_spent_in_rtl_sim = time.time() - start
@@ -102,7 +102,7 @@ def run_rtl(memsize: int, design_name: str, randseed: int, nmax_bbs: int, author
 @timeout(seconds=60*60*2)
 def fuzz_single_from_descriptor(memsize: int, design_name: str, randseed: int, nmax_bbs: int, authorize_privileges: bool, loggers: list = None, check_pc_spike_again: bool = False, start_time: float = None, isa_class_p_distr = None):
     try:
-        gathered_times = run_rtl(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again)
+        gathered_times = run_rtl(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, isa_class_p_distr)
         if loggers is not None:
             loggers[random.randrange(len(loggers))].log(True, {'memsize': memsize, 'design_name': design_name, 'randseed': randseed, 'nmax_bbs': nmax_bbs, 'authorize_privileges': authorize_privileges}, False, '') # No message for successful runs
         else:

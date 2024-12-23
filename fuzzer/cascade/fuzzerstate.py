@@ -221,7 +221,7 @@ class FuzzerState:
             self.proba_turn_on_off_fpu_again = random.random()*0.1 # Proba that we re-turn the FPU into the mode it is already in (on or off)
 
     def instance_to_str(self):
-        return f"{self.memview.memsize}_{self.design_name}_{self.randseed}_{self.nmax_bbs}"
+        return f"{self.randseed}"
 
     def has_reached_max_instr_num(self):
         if self.nmax_instructions is None:

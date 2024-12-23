@@ -52,7 +52,7 @@ def setup_sim_env(design_name, sram_elf, bootrom_elf, tracefile, simtime, cascad
         my_env["SIMROMELF"] = sram_elf
 
     if design_name == 'bp':
-        my_env['LD_LIBRARY_PATH'] = os.path.join(cascadedir, '../../software/import/black-parrot-sdk/install/lib')'
+        my_env['LD_LIBRARY_PATH'] = os.path.join(cascadedir, '../../software/import/black-parrot-sdk/install/lib')
 
     if verbose:
         print('setting SIMSRAMELF to {}'.format(my_env["SIMSRAMELF"]))
