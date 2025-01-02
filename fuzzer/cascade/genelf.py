@@ -93,7 +93,7 @@ def gen_elf_from_bbs(fuzzerstate, is_spike_resolution, prefixname: str, test_ide
         dump_file = elfpath[:-4] + '.dump'
         f = open(nbf_file, 'w')
         env = dict(os.environ)
-        bp_sdk_dir = env['CASCADE_BP_SDK_DIR'] 
+        bp_sdk_dir = env['CASCADE_BP_SDK_DIR']
         objcopy = os.path.join(bp_sdk_dir, 'install/bin/riscv64-unknown-elf-dramfs-objcopy')
         bp_dir = env['CASCADE_BP']
         spec = importlib.util.spec_from_file_location("nbf_module", os.path.join(bp_dir, 'bp_common/software/py/nbf.py'))
@@ -101,7 +101,18 @@ def gen_elf_from_bbs(fuzzerstate, is_spike_resolution, prefixname: str, test_ide
         spec.loader.exec_module(nbf_module)
 
         if subprocess.run([objcopy, '-O', 'verilog', elfpath, mem_file]):
-            converter = nbf_module.NBF(1, '', mem_file, 16, '', True, True, 64, '0x80000000', False, False)
+            converter = nbf_module.NBF(
+                ncpus = 1,
+                ucode_file = '',
+                mem_file = mem_file,
+                mem_size = 16,
+                checkpoint_file = '',
+                config = True,
+                skip_zeros = True,
+                data_width = 64,
+                boot_pc = '0x80000000',
+                debug = True,
+                verify = False)
             orig_stdout = sys.stdout
             sys.stdout = f
             converter.dump()

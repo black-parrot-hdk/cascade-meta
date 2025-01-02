@@ -77,7 +77,7 @@ def gen_fuzzerstate_elf_expectedvals(memsize: int, design_name: str, randseed: i
 ###
 
 def run_rtl(memsize: int, design_name: str, randseed: int, nmax_bbs: int, authorize_privileges: bool, check_pc_spike_again: bool, nmax_instructions: int = None, nodependencybias: bool = False, simulator=SimulatorEnum.VERILATOR, isa_class_p_distr = None):
-    fuzzerstate, rtl_elfpath, finalregvals_spikeresol, time_seconds_spent_in_gen_bbs, time_seconds_spent_in_spike_resol, time_seconds_spent_in_gen_elf = gen_fuzzerstate_elf_expectedvals(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, nmax_instructions, nodependencybias, isa_class_p_distr)
+    fuzzerstate, rtl_elfpath, finalregvals_spikeresol, time_seconds_spent_in_gen_bbs, time_seconds_spent_in_spike_resol, time_seconds_spent_in_gen_elf = gen_fuzzerstate_elf_expectedvals(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, nmax_instructions, nodependencybias, isa_class_p_distr = isa_class_p_distr)
     start = time.time()
     is_success, rtl_msg = runtest_simulator(fuzzerstate, rtl_elfpath, finalregvals_spikeresol, simulator=simulator)
     time_seconds_spent_in_rtl_sim = time.time() - start
@@ -102,7 +102,7 @@ def run_rtl(memsize: int, design_name: str, randseed: int, nmax_bbs: int, author
 @timeout(seconds=60*60*2)
 def fuzz_single_from_descriptor(memsize: int, design_name: str, randseed: int, nmax_bbs: int, authorize_privileges: bool, loggers: list = None, check_pc_spike_again: bool = False, start_time: float = None, isa_class_p_distr = None):
     try:
-        gathered_times = run_rtl(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, isa_class_p_distr)
+        gathered_times = run_rtl(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, isa_class_p_distr = isa_class_p_distr)
         if loggers is not None:
             loggers[random.randrange(len(loggers))].log(True, {'memsize': memsize, 'design_name': design_name, 'randseed': randseed, 'nmax_bbs': nmax_bbs, 'authorize_privileges': authorize_privileges}, False, '') # No message for successful runs
         else:

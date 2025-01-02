@@ -17,15 +17,14 @@ if __name__ == '__main__':
     if "CASCADE_ENV_SOURCED" not in os.environ:
         raise Exception("The Cascade environment must be sourced prior to running the Python recipes.")
 
-    isa_class_p_distr = None
     if len(sys.argv) > 1:
         json_string = sys.argv[1]
         isa_class_p_distr = json.loads(json_string)
-        print("Received list:", isa_class_p_distr)
+    else:
+        isa_class_p_distr = [0.5]*27
+    print("ISA dist:", isa_class_p_distr)
     
-    seed = sys.argv[2] if len(sys.argv) > 2 else 341
-    print("Supplied seed:", seed)
-
+    seed = 341
     design_name = 'bp'
     descriptor = (881540, design_name, seed, 80, True)
 
