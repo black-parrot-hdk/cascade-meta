@@ -17,8 +17,8 @@ from tqdm import tqdm
 
 # @param in_tuple: instance_id: int, memsize: int, design_name: str, check_pc_spike_again: bool, randseed: int, nmax_bbs: int, authorize_privileges: bool, outdir_path: str
 def __gen_elf_worker(in_tuple):
-    instance_id, memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, outdir_path = in_tuple
-    fuzzerstate, elfpath, _, _, _, _ = gen_fuzzerstate_elf_expectedvals(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again)
+    instance_id, memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, outdir_path, isa_class_p_distr = in_tuple
+    fuzzerstate, elfpath, _, _, _, _ = gen_fuzzerstate_elf_expectedvals(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, isa_class_p_distr=isa_class_p_distr)
     # Move the file from elfpath to outdir_path, and name it after the design name and instance id.
     shutil.move(elfpath, os.path.join(outdir_path, f"{design_name}_{instance_id}.elf"))
 
@@ -38,7 +38,7 @@ def __gen_elf_worker(in_tuple):
         f.write('(' + ', '.join(map(str, [memsize, design_name, randseed, nmax_bbs, authorize_privileges])) + ')')
 
 
-def gen_many_elfs(design_name: str, num_cores: int, num_elfs: int, outdir_path, verbose: bool = True):
+def gen_many_elfs(design_name: str, num_cores: int, num_elfs: int, outdir_path, verbose: bool = True, isa_class_p_distr=None):
     random.seed(0)
 
     # Ensure that the output directory exists.
@@ -46,7 +46,7 @@ def gen_many_elfs(design_name: str, num_cores: int, num_elfs: int, outdir_path, 
 
     # Gen the program descriptors.
     memsizes, _, randseeds, num_bbss, authorize_privilegess = tuple(zip(*[gen_new_test_instance(design_name, i, True) for i in range(num_elfs)]))
-    workloads = [(i, memsizes[i], design_name, randseeds[i], num_bbss[i], authorize_privilegess[i], False, outdir_path) for i in range(num_elfs)]
+    workloads = [(i, memsizes[i], design_name, randseeds[i], num_bbss[i], authorize_privilegess[i], False, outdir_path, isa_class_p_distr) for i in range(num_elfs)]
 
     calibrate_spikespeed()
     profile_get_medeleg_mask(design_name)

@@ -9,6 +9,7 @@ from params.runparams import PATH_TO_TMP
 
 import os
 import sys
+import json
 
 if __name__ == '__main__':
     if "CASCADE_ENV_SOURCED" not in os.environ:
@@ -17,12 +18,19 @@ if __name__ == '__main__':
     num_elfs = 500
     target_dir = os.path.join(PATH_TO_TMP, 'manyelfs')
     if len(sys.argv) > 1:
-        num_elfs = int(sys.argv[1])
+        json_string = sys.argv[1]
+        isa_class_p_distr = json.loads(json_string)
+    else:
+        isa_class_p_distr = [0.5]*27
+    print("ISA dist:", isa_class_p_distr)
+    
     if len(sys.argv) > 2:
-        target_dir = sys.argv[2]
+        num_elfs = int(sys.argv[2])
+    if len(sys.argv) > 3:
+        target_dir = sys.argv[3]
     num_cores = int(os.getenv('CASCADE_JOBS', 160))
 
-    gen_many_elfs('bp', num_cores, num_elfs, target_dir)
+    gen_many_elfs('bp', num_cores, num_elfs, target_dir, isa_class_p_distr=isa_class_p_distr)
 
 else:
     raise Exception("This module must be at the toplevel.")
