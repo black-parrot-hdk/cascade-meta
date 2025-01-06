@@ -93,5 +93,7 @@ export CASCADE_PK64=$RISCV/riscv32-unknown-elf/bin/pk
 
 export CASCADE_PATH_TO_FIGURES=$CASCADE_META_ROOT/figures
 
-export CASCADE_BP_SDK_DIR=$CASCADE_META_ROOT/../../../software/import/black-parrot-sdk
-export CASCADE_BP=$CASCADE_META_ROOT/../../import/black-parrot
+#export CASCADE_BP_SDK_DIR=$CASCADE_META_ROOT/../../../software/import/black-parrot-sdk
+#export CASCADE_BP=$CASCADE_META_ROOT/../../import/black-parrot
+echo $CASCADE_BP_SDK_DIR
+echo $CASCADE_BP
