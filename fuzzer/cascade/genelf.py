@@ -111,7 +111,7 @@ def gen_elf_from_bbs(fuzzerstate, is_spike_resolution, prefixname: str, test_ide
                 skip_zeros = True,
                 data_width = 64,
                 boot_pc = '0x80000000',
-                debug = True,
+                debug = False,
                 verify = False)
             orig_stdout = sys.stdout
             sys.stdout = f
