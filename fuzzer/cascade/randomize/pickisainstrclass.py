@@ -9,6 +9,7 @@ from params.fuzzparams import NUM_MIN_FREE_INTREGS, MAX_NUM_FENCES_PER_EXECUTION
 from cascade.privilegestate import PrivilegeStateEnum, is_ready_to_descend_privileges
 import random
 from copy import copy
+from datetime import datetime
 
 # This module helps picking an ISAInstrClass.
 # This is the first step of generating a random instruction without a specific structure.
@@ -54,7 +55,8 @@ ISAINSTRCLASS_INITIAL_BOOSTERS = {
 def _gen_next_isainstrclass_from_weights(weights: list = None) -> ISAInstrClass:
     ret = None
     while ret is None or weights[ret] == 0:
-        ret = random.choices(list(ISAInstrClass), weights=weights)[0]
+        myrandom = random.Random(datetime.now().timestamp())
+        ret = myrandom.choices(list(ISAInstrClass), weights=weights)[0]
     return ret
 
 # @brief For now, the weights used for choosing instructions are fixed over time.
