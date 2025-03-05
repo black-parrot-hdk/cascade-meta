@@ -84,46 +84,47 @@ def gen_elf_from_bbs(fuzzerstate, is_spike_resolution, prefixname: str, test_ide
     elfpath = os.path.join(PATH_TO_TMP, f"{prefixname}{test_identifier}.elf")
 
     # Generate the ELF object
-    gen_elf(curr_bytes, start_addr=fuzzerstate.bb_start_addr_seq[0], section_addr=start_addr, destination_path=elfpath, is_64bit=fuzzerstate.is_design_64bit)
-    # Convert to NBF for BP
-    if fuzzerstate.design_name == 'bp':
-        mem_file = elfpath[:-4] + '.mem'
-        nbf_file = elfpath[:-4] + '.nbf'
-        riscv_file = elfpath[:-4] + '.riscv'
-        dump_file = elfpath[:-4] + '.dump'
-        f = open(nbf_file, 'w')
-        env = dict(os.environ)
-        bp_sdk_dir = env['CASCADE_BP_SDK_DIR']
-        objcopy = os.path.join(bp_sdk_dir, 'install/bin/riscv64-unknown-elf-dramfs-objcopy')
-        bp_dir = env['CASCADE_BP']
-        spec = importlib.util.spec_from_file_location("nbf_module", os.path.join(bp_dir, 'bp_common/software/py/nbf.py'))
-        nbf_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(nbf_module)
+    #gen_elf(curr_bytes, start_addr=fuzzerstate.bb_start_addr_seq[0], section_addr=start_addr, destination_path=elfpath, is_64bit=fuzzerstate.is_design_64bit)
+    gen_elf(curr_bytes, start_addr=fuzzerstate.bb_start_addr_seq[0], section_addr=0x8000_0000, destination_path=elfpath, is_64bit=fuzzerstate.is_design_64bit)
+    ## Convert to NBF for BP
+    #if fuzzerstate.design_name == 'bp':
+    #    mem_file = elfpath[:-4] + '.mem'
+    #    nbf_file = elfpath[:-4] + '.nbf'
+    #    riscv_file = elfpath[:-4] + '.riscv'
+    #    dump_file = elfpath[:-4] + '.dump'
+    #    f = open(nbf_file, 'w')
+    #    env = dict(os.environ)
+    #    bp_sdk_dir = env['CASCADE_BP_SDK_DIR']
+    #    objcopy = os.path.join(bp_sdk_dir, 'install/bin/riscv64-unknown-elf-dramfs-objcopy')
+    #    bp_dir = env['CASCADE_BP']
+    #    spec = importlib.util.spec_from_file_location("nbf_module", os.path.join(bp_dir, 'bp_common/software/py/nbf.py'))
+    #    nbf_module = importlib.util.module_from_spec(spec)
+    #    spec.loader.exec_module(nbf_module)
 
-        if subprocess.run([objcopy, '-O', 'verilog', elfpath, mem_file]):
-            converter = nbf_module.NBF(
-                ncpus = 1,
-                ucode_file = '',
-                mem_file = mem_file,
-                mem_size = 16,
-                checkpoint_file = '',
-                config = True,
-                skip_zeros = True,
-                data_width = 64,
-                boot_pc = '0x80000000',
-                debug = False,
-                verify = False)
-            orig_stdout = sys.stdout
-            sys.stdout = f
-            converter.dump()
-            sys.stdout = orig_stdout
-        else:
-            assert False, 'Did not generate NBF'
-        f.close()
+    #    if subprocess.run([objcopy, '-O', 'verilog', elfpath, mem_file]):
+    #        converter = nbf_module.NBF(
+    #            ncpus = 1,
+    #            ucode_file = '',
+    #            mem_file = mem_file,
+    #            mem_size = 16,
+    #            checkpoint_file = '',
+    #            config = True,
+    #            skip_zeros = True,
+    #            data_width = 64,
+    #            boot_pc = '0x80000000',
+    #            debug = False,
+    #            verify = False)
+    #        orig_stdout = sys.stdout
+    #        sys.stdout = f
+    #        converter.dump()
+    #        sys.stdout = orig_stdout
+    #    else:
+    #        assert False, 'Did not generate NBF'
+    #    f.close()
 
-        gen_elf(curr_bytes, start_addr=fuzzerstate.bb_start_addr_seq[0], section_addr=0x8000_0000, destination_path=riscv_file, is_64bit=fuzzerstate.is_design_64bit)
-        objdump = os.path.join(bp_sdk_dir, 'install/bin/riscv64-unknown-elf-dramfs-objdump')
-        with open(dump_file, "w") as file:
-            subprocess.run([objdump, '-D', riscv_file], stdout=file)
+    #    gen_elf(curr_bytes, start_addr=fuzzerstate.bb_start_addr_seq[0], section_addr=0x8000_0000, destination_path=riscv_file, is_64bit=fuzzerstate.is_design_64bit)
+    #    objdump = os.path.join(bp_sdk_dir, 'install/bin/riscv64-unknown-elf-dramfs-objdump')
+    #    with open(dump_file, "w") as file:
+    #        subprocess.run([objdump, '-D', riscv_file], stdout=file)
 
     return elfpath

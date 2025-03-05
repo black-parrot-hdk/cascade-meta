@@ -21,8 +21,8 @@ def __gen_elf_worker(in_tuple):
     fuzzerstate, elfpath, _, _, _, _ = gen_fuzzerstate_elf_expectedvals(memsize, design_name, randseed, nmax_bbs, authorize_privileges, check_pc_spike_again, isa_class_p_distr=isa_class_p_distr)
     # Move the file from elfpath to outdir_path, and name it after the design name and instance id.
     shutil.move(elfpath, os.path.join(outdir_path, f"{nbfname}.elf"))
-    shutil.move(elfpath.replace('.elf', '.riscv'), os.path.join(outdir_path, f"{nbfname}.riscv"))
-    shutil.move(elfpath.replace('.elf', '.nbf'), os.path.join(outdir_path, f"{nbfname}.nbf"))
+    #shutil.move(elfpath.replace('.elf', '.riscv'), os.path.join(outdir_path, f"{nbfname}.riscv"))
+    #shutil.move(elfpath.replace('.elf', '.nbf'), os.path.join(outdir_path, f"{nbfname}.nbf"))
 
     # Write the end address (where spike will fail), for further analysis.
     with open(os.path.join(outdir_path, f"{design_name}_{instance_id}_finaladdr.txt"), "w") as f:
