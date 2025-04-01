@@ -21,7 +21,7 @@ if __name__ == '__main__':
         json_string = sys.argv[1]
         isa_class_p_distr = json.loads(json_string)
     else:
-        isa_class_p_distr = [0.5]*27
+        raise Exception("No ISA probablity array provided.")
     print("ISA dist:", isa_class_p_distr)
     
     if len(sys.argv) > 2:
