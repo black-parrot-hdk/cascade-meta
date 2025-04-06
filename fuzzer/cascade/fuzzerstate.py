@@ -108,7 +108,7 @@ class FuzzerState:
 
     def gen_pick_weights(self):
         self.fpuweight = random.random() # Can decrease the overall FPU load to favor other types of instructions
-        if self.isa_class_p_distr is None:
+        if self.isa_class_p_distr is not None:
             self.isapickweights = {
                 # will be normalized again later
                 ISAInstrClass.REGFSM:      (0.1),
@@ -119,9 +119,9 @@ class FuzzerState:
                 ISAInstrClass.MULDIV64:    (self.isa_class_p_distr[1]),
                 ISAInstrClass.AMO:         (self.isa_class_p_distr[2]),
                 ISAInstrClass.AMO64:       (self.isa_class_p_distr[2]),
-                ISAInstrClass.JAL :        (self.isa_class_p_distr[3]),
-                ISAInstrClass.JALR:        (self.isa_class_p_distr[3]),
-                ISAInstrClass.BRANCH:      (self.isa_class_p_distr[3]),
+                ISAInstrClass.JAL :        (self.isa_class_p_distr[3] + 0.005),
+                ISAInstrClass.JALR:        (self.isa_class_p_distr[3] + 0.005),
+                ISAInstrClass.BRANCH:      (self.isa_class_p_distr[3] + 0.005),
                 ISAInstrClass.MEM:         (self.isa_class_p_distr[4]),
                 ISAInstrClass.MEM64:       (self.isa_class_p_distr[4]),
                 ISAInstrClass.MEMFPU:      (self.isa_class_p_distr[5]),
