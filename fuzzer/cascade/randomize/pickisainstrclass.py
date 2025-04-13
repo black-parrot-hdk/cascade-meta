@@ -56,7 +56,8 @@ def _gen_next_isainstrclass_from_weights(weights: list = None) -> ISAInstrClass:
     ret = None
     while ret is None or weights[ret] == 0:
         myrandom = random.Random(datetime.now().timestamp())
-        ret = myrandom.choices(list(ISAInstrClass), weights=weights)[0]
+        #ret = myrandom.choices(list(ISAInstrClass), weights=weights)[0]
+        ret = myrandom.choices(list(weights.keys()), weights=list(weights.values()))[0]
     return ret
 
 # @brief For now, the weights used for choosing instructions are fixed over time.
